@@ -49,15 +49,71 @@ pip install -U langchain-community
    os.environ["PINECONE_API_KEY"] = getpass.getpass("Enter your Pinecone API key: ")
    os.environ["PINECONE_ENV"] = input("Enter your Pinecone environment: ")
    ```
-
-3. **Ejecutar el Script**
-   ```sh
-   python main.py
-   ```
-
 ---
 
-## 📊 Ejemplo de Uso
+## Ejecución del Código
+
+### 1. Cargar y Dividir Documentos
+Primero, obtenemos el contenido de Wikipedia y lo dividimos en fragmentos:
+
+```python
+import bs4
+from langchain.document_loaders import WebBaseLoader
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+loader = WebBaseLoader(
+    web_paths=("https://en.wikipedia.org/wiki/World_War_II",),
+    bs_kwargs=dict(parse_only=bs4.SoupStrainer(["p", "h1", "h2"]))
+)
+documents = loader.load()
+
+text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+all_splits = text_splitter.split_documents(documents)
+```
+
+### 2. Indexar Documentos en Pinecone
+Ahora, conectamos con Pinecone y almacenamos los embeddings:
+
+```python
+from langchain_openai import OpenAIEmbeddings
+from langchain.vectorstores import Pinecone
+from pinecone import Pinecone, ServerlessSpec
+from langchain_pinecone import PineconeVectorStore
+import os, getpass
+
+# Configurar claves de API
+if "OPENAI_API_KEY" not in os.environ:
+    os.environ["OPENAI_API_KEY"] = getpass.getpass("Enter your OpenAI API key: ")
+if "PINECONE_API_KEY" not in os.environ:
+    os.environ["PINECONE_API_KEY"] = getpass.getpass("Enter your Pinecone API key: ")
+if "PINECONE_ENV" not in os.environ:
+    os.environ["PINECONE_ENV"] = input("Enter your Pinecone environment: ")
+
+index_name = "rac1"
+pc = Pinecone(api_key=os.environ["PINECONE_API_KEY"])
+if index_name not in pc.list_indexes().names():
+    pc.create_index(
+        name=index_name,
+        dimension=1536,
+        metric="cosine",
+        spec=ServerlessSpec(cloud="aws", region=os.environ["PINECONE_ENV"])
+    )
+
+embedding_function = OpenAIEmbeddings()
+vector_db = PineconeVectorStore.from_documents(all_splits, embedding_function, index_name=index_name)
+```
+
+### 3. Crear el Pipeline de RAG
+
+```python
+from langchain.chat_models import ChatOpenAI
+from langchain.chains import RetrievalQA
+
+retriever = vector_db.as_retriever()
+llm = ChatOpenAI(model_name="gpt-4o-mini")
+qa_chain = RetrievalQA.from_chain_type(llm, retriever=retriever, return_source_documents=True)
+```
+## Ejemplo de Uso
 
 Ejemplo de consulta realizada:
 ```sh
@@ -88,28 +144,7 @@ Documentos fuente: [Document(id='bc33d488-028b-43eb-b779-e961ffa62fbf', metadata
 
 ---
 
-## 📂 Estructura del Proyecto
+## Conclusión
+Este proyecto demuestra cómo implementar un sistema RAG utilizando LangChain, OpenAI y Pinecone para realizar consultas a una fuente de conocimiento estructurada.
 
-```
-📦 tu-repo
-├── 📜 main.py  # Código principal
-├── 📜 README.md  # Documentación
-└── 📜 requirements.txt  # Lista de dependencias
-```
-
----
-
-## 📌 Contribuciones
-
-Si deseas mejorar este proyecto, por favor abre un issue o un pull request en el repositorio.
-
----
-
-## 📜 Licencia
-
-Este proyecto está bajo la licencia MIT.
-
----
-
-¡Disfruta explorando el poder de RAG con LangChain! 🚀
 
