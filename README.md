@@ -4,7 +4,7 @@ Este proyecto implementa un sistema de Recuperación Aumentada por Generación (
 
 ---
 
-## 📌 Arquitectura del Proyecto
+## Arquitectura del Proyecto
 
 1. **Extracción de Datos**: Se usa `WebBaseLoader` de LangChain para extraer el contenido de la página de Wikipedia sobre la Segunda Guerra Mundial.
 2. **Procesamiento del Texto**: Se divide el contenido en fragmentos usando `RecursiveCharacterTextSplitter`.
@@ -12,7 +12,8 @@ Este proyecto implementa un sistema de Recuperación Aumentada por Generación (
 4. **Almacenamiento en Pinecone**: Se usa `PineconeVectorStore` para almacenar los embeddings.
 5. **Recuperación y Generación de Respuestas**: Se utiliza `RetrievalQA` para responder preguntas en lenguaje natural basadas en los documentos indexados.
 
-![Arquitectura del Proyecto](ruta/a/la/imagen.png)
+![arquitectura](https://github.com/user-attachments/assets/1c88b1fb-f013-45f3-928f-bbcf77b47b04)
+
 
 ---
 
@@ -141,6 +142,15 @@ Documentos fuente: [Document(id='bc33d488-028b-43eb-b779-e961ffa62fbf', metadata
 ```
 
 ![image](https://github.com/user-attachments/assets/f0f80186-2afd-4cd8-834f-3b3dceda2d6f)
+
+---
+## Evidencia en la base de datos
+
+![image](https://github.com/user-attachments/assets/b808ecb4-5f35-4c77-a79f-345919f33be0)
+
+![image](https://github.com/user-attachments/assets/f9bb1c2e-dea5-49fb-b072-1f5bc988acca)
+
+
 
 ---
 
